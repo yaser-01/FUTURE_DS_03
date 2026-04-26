@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Funnel Performance Dashboard | Conversion Analytics</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .dashboard-wrapper {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .dashboard-header {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .header-content h1 {
+      font-size: 2.5em;
+      color: #2c3e50;
+      margin-bottom: 5px;
+    }
+
+    .header-content p {
+      color: #7f8c8d;
+      font-size: 1.1em;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    .btn {
+      padding: 12px 24px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: #ecf0f1;
+      color: #2c3e50;
+    }
+
+    .btn-secondary:hover {
+      background: #d5dbdb;
+    }
+
+    .file-input-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    #fileInput {
+      display: none;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .metric-card {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      transition: all 0.3s;
+      border-left: 5px solid;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+    }
+
+    .metric-card.primary {
+      border-left-color: #667eea;
+    }
+
+    .metric-card.success {
+      border-left-color: #27ae60;
+    }
+
+    .metric-card.warning {
+      border-left-color: #f39c12;
+    }
+
+    .metric-card.danger {
+      border-left-color: #e74c3c;
+    }
+
+    .metric-label {
+      font-size: 0.9em;
+      color: #95a5a6;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .metric-value {
+      font-size: 2.5em;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 8px;
+    }
+
+    .metric-detail {
+      font-size: 0.95em;
+      color: #7f8c8d;
+    }
+
+    .funnel-section {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      margin-bottom: 30px;
+    }
+
+    .section-title {
+      font-size: 1.8em;
+      color: #2c3e50;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .section-icon {
+      font-size: 1.5em;
+    }
+
+    .funnel-chart {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .funnel-stage {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .stage-label {
+      width: 150px;
+      font-weight: 600;
+      color: #2c3e50;
+    }
+
+    .stage-bar {
+      flex: 1;
+      height: 50px;
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 15px;
+      color: white;
+      font-weight: 600;
+      position: relative;
+    }
+
+    .stage-bar.stage-1 {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+    }
+
+    .stage-bar.stage-2 {
+      background: linear-gradient(90deg, #f093fb, #f5576c);
+    }
+
+    .stage-bar.stage-3 {
+      background: linear-gradient(90deg, #4facfe, #00f2fe);
+    }
+
+    .stage-count {
+      font-size: 1.3em;
+    }
+
+    .stage-percent {
+      font-size: 0.9em;
+      opacity: 0.9;
+    }
+
+    .arrow-down {
+      width: 100%;
+      height: 20px;
+      display: flex;
+      justify-content: center;
+      color: #bdc3c7;
+      font-size: 1.5em;
+      margin: -10px 0;
+    }
+
+    .dropoff-info {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.9em;
+      color: #e74c3c;
+      margin-top: 5px;
+      font-weight: 600;
+    }
+
+    .insights-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .insight-card {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      padding: 25px;
+      border-radius: 12px;
+      color: white;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .insight-title {
+      font-size: 1.2em;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .insight-value {
+      font-size: 2em;
+      font-weight: 700;
+      margin-bottom: 10px;
+    }
+
+    .insight-description {
+      font-size: 0.95em;
+      opacity: 0.95;
+      line-height: 1.5;
+    }
+
+    .recommendations-section {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      margin-bottom: 30px;
+    }
+
+    .recommendation-group {
+      margin-bottom: 25px;
+    }
+
+    .recommendation-header {
+      font-size: 1.3em;
+      font-weight: 700;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .recommendation-header.critical {
+      background: #fee;
+      color: #c0392b;
+      border-left: 4px solid #e74c3c;
+    }
+
+    .recommendation-header.opportunity {
+      background: #fef3cd;
+      color: #d68910;
+      border-left: 4px solid #f39c12;
+    }
+
+    .recommendation-header.action {
+      background: #e8f5e9;
+      color: #1e8449;
+      border-left: 4px solid #27ae60;
+    }
+
+    .recommendation-item {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 8px;
+      margin-bottom: 12px;
+      border-left: 4px solid #667eea;
+    }
+
+    .recommendation-title {
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .impact-badge {
+      background: #3498db;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.8em;
+      font-weight: 600;
+    }
+
+    .recommendation-description {
+      color: #34495e;
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .action-items {
+      background: white;
+      padding: 12px;
+      border-radius: 6px;
+      margin-top: 10px;
+    }
+
+    .action-items strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #2c3e50;
+    }
+
+    .action-items ul {
+      margin: 0;
+      padding-left: 20px;
+    }
+
+    .action-items li {
+      color: #34495e;
+      margin-bottom: 6px;
+      line-height: 1.4;
+    }
+
+    .channel-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .channel-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      border-top: 3px solid #667eea;
+    }
+
+    .channel-name {
+      font-size: 1.2em;
+      font-weight: 700;
+      color: #2c3e50;
+      margin-bottom: 15px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .channel-badge {
+      background: #f39c12;
+      color: white;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.7em;
+      font-weight: 600;
+    }
+
+    .channel-stat {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid #ecf0f1;
+      font-size: 0.95em;
+    }
+
+    .channel-stat label {
+      color: #7f8c8d;
+    }
+
+    .channel-stat strong {
+      color: #2c3e50;
+      font-weight: 600;
+    }
+
+    .export-section {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      margin-bottom: 30px;
+    }
+
+    .export-section h3 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+      font-size: 1.3em;
+    }
+
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 400px;
+      font-size: 1.2em;
+      color: #7f8c8d;
+    }
+
+    .loading-spinner {
+      border: 4px solid #ecf0f1;
+      border-top: 4px solid #667eea;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin-right: 15px;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .no-data {
+      background: #f8f9fa;
+      padding: 40px;
+      border-radius: 12px;
+      text-align: center;
+      color: #7f8c8d;
+    }
+
+    .no-data-icon {
+      font-size: 3em;
+      margin-bottom: 15px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 25px;
+      border-bottom: 2px solid #ecf0f1;
+    }
+
+    .tab {
+      padding: 12px 20px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1em;
+      font-weight: 600;
+      color: #7f8c8d;
+      border-bottom: 3px solid transparent;
+      transition: all 0.3s;
+    }
+
+    .tab.active {
+      color: #667eea;
+      border-bottom-color: #667eea;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    @media (max-width: 768px) {
+      .dashboard-header {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .header-content h1 {
+        font-size: 2em;
+      }
+
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .stage-label {
+        width: 100px;
+        font-size: 0.9em;
+      }
+
+      .stage-bar {
+        font-size: 0.9em;
+      }
+
+      .funnel-stage {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .stage-label {
+        width: auto;
+      }
+
+      .recommendations-section {
+        padding: 20px;
+      }
+
+      .tabs {
+        flex-wrap: wrap;
+      }
+    }
+
+    .success-message {
+      background: #d4edda;
+      color: #155724;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .error-message {
+      background: #f8d7da;
+      color: #721c24;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      display: none;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="dashboard-wrapper">
+    <!-- Header -->
+    <div class="dashboard-header">
+      <div class="header-content">
+        <h1>📊 Funnel Performance Dashboard</h1>
+        <p>Real-time conversion analytics and optimization insights</p>
+      </div>
+      <div class="header-actions">
+        <div class="file-input-wrapper">
+          <input type="file" id="fileInput" accept=".csv" />
+          <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+            📁 Upload CSV
+          </button>
+        </div>
+        <button class="btn btn-secondary" onclick="loadSampleData()">📊 Load Sample</button>
+      </div>
+    </div>
+
+    <!-- Messages -->
+    <div class="success-message" id="successMessage"></div>
+    <div class="error-message" id="errorMessage"></div>
+
+    <!-- Loading State -->
+    <div id="loading" class="no-data" style="display: none;">
+      <div style="display: flex; justify-content: center; align-items: center;">
+        <div class="loading-spinner"></div>
+        <span>Processing data...</span>
+      </div>
+    </div>
+
+    <!-- No Data State -->
+    <div id="noData" class="no-data">
+      <div class="no-data-icon">📁</div>
+      <h3>No Data Loaded</h3>
+      <p>Upload a CSV file or load sample data to get started</p>
+    </div>
+
+    <!-- Dashboard Content (Hidden by default) -->
+    <div id="dashboard" style="display: none;">
+      <!-- Key Metrics -->
+      <div class="metrics-grid">
+        <div class="metric-card primary">
+          <div class="metric-label">Overall Conversion Rate</div>
+          <div class="metric-value" id="overallConversion">0%</div>
+          <div class="metric-detail" id="conversionDetail">0 customers from 0 contacts</div>
+        </div>
+        <div class="metric-card success">
+          <div class="metric-label">Lead to Customer</div>
+          <div class="metric-value" id="leadToCustomer">0%</div>
+          <div class="metric-detail" id="leadDetail">Sales conversion rate</div>
+        </div>
+        <div class="metric-card warning">
+          <div class="metric-label">Traffic to Lead</div>
+          <div class="metric-value" id="trafficToLead">0%</div>
+          <div class="metric-detail" id="trafficDetail">Engagement rate</div>
+        </div>
+        <div class="metric-card danger">
+          <div class="metric-label">Total Dropoff</div>
+          <div class="metric-value" id="totalDropoff">0</div>
+          <div class="metric-detail" id="dropoffDetail">Lost prospects</div>
+        </div>
+      </div>
+
+      <!-- Key Insights -->
+      <div class="insights-grid">
+        <div class="insight-card">
+          <div class="insight-title">💡 Primary Bottleneck</div>
+          <div class="insight-description" id="primaryBottleneck">
+            Analyzing your funnel...
+          </div>
+        </div>
+        <div class="insight-card" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);">
+          <div class="insight-title">🎯 Top Opportunity</div>
+          <div class="insight-description" id="topOpportunity">
+            Analyzing your funnel...
+          </div>
+        </div>
+        <div class="insight-card" style="background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);">
+          <div class="insight-title">⭐ Best Performer</div>
+          <div class="insight-description" id="bestPerformer">
+            Analyzing your funnel...
+          </div>
+        </div>
+      </div>
+
+      <!-- Funnel Visualization -->
+      <div class="funnel-section">
+        <h2 class="section-title">
+          <span class="section-icon">📉</span> Conversion Funnel
+        </h2>
+        <div class="funnel-chart">
+          <div class="funnel-stage">
+            <div class="stage-label">Contacts</div>
+            <div class="stage-bar stage-1" style="width: 100%;">
+              <span class="stage-count" id="stageContacts">0</span>
+              <span class="stage-percent">100%</span>
+            </div>
+          </div>
+          <div class="arrow-down">↓</div>
+
+          <div class="funnel-stage">
+            <div class="stage-label">Leads</div>
+            <div class="stage-bar stage-2" id="leadsBar" style="width: 100%;">
+              <span class="stage-count" id="stageLeads">0</span>
+              <span class="stage-percent" id="leadsPercent">0%</span>
+            </div>
+            <div class="dropoff-info" id="leadsDropoff"></div>
+          </div>
+          <div class="arrow-down">↓</div>
+
+          <div class="funnel-stage">
+            <div class="stage-label">Customers</div>
+            <div class="stage-bar stage-3" id="customersBar" style="width: 100%;">
+              <span class="stage-count" id="stageCustomers">0</span>
+              <span class="stage-percent" id="customersPercent">0%</span>
+            </div>
+            <div class="dropoff-info" id="customersDropoff"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Channel Performance -->
+      <div class="funnel-section">
+        <h2 class="section-title">
+          <span class="section-icon">📱</span> Channel Performance
+        </h2>
+        <div class="channel-grid" id="channelGrid">
+          <!-- Populated by JavaScript -->
+        </div>
+      </div>
+
+      <!-- Recommendations -->
+      <div class="recommendations-section">
+        <h2 class="section-title">
+          <span class="section-icon">💡</span> Actionable Recommendations
+        </h2>
+
+        <div class="tabs">
+          <button class="tab active" onclick="switchTab('critical')">🚨 Critical Issues</button>
+          <button class="tab" onclick="switchTab('opportunity')">📈 Opportunities</button>
+          <button class="tab" onclick="switchTab('action')">✅ Action Items</button>
+        </div>
+
+        <div id="critical" class="tab-content active">
+          <div class="recommendation-group" id="criticalItems"></div>
+        </div>
+
+        <div id="opportunity" class="tab-content">
+          <div class="recommendation-group" id="opportunityItems"></div>
+        </div>
+
+        <div id="action" class="tab-content">
+          <div class="recommendation-group" id="actionItems"></div>
+        </div>
+      </div>
+
+      <!-- Executive Summary -->
+      <div class="funnel-section">
+        <h2 class="section-title">
+          <span class="section-icon">📋</span> Executive Summary
+        </h2>
+        <pre id="executiveSummary" style="background: #f8f9fa; padding: 20px; border-radius: 8px; overflow-x: auto; color: #2c3e50; line-height: 1.6;"></pre>
+      </div>
+
+      <!-- Export Section -->
+      <div class="export-section">
+        <h3>📥 Export Results</h3>
+        <button class="btn btn-primary" onclick="exportJSON()" style="margin-right: 10px;">JSON Export</button>
+        <button class="btn btn-secondary" onclick="exportCSV()">CSV Export</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Import the analysis libraries
+    let analysisData = null;
+
+    // File input handler
+    document.getElementById('fileInput').addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          showMessage('Loading and analyzing data...', 'loading');
+          const text = await file.text();
+          await analyzeData(text);
+          showMessage('Data loaded successfully!', 'success');
+        } catch (error) {
+          showMessage('Error loading file: ' + error.message, 'error');
+          console.error(error);
+        }
+      }
+    });
+
+    async function loadSampleData() {
+      try {
+        showMessage('Loading sample data...', 'loading');
+        const response = await fetch('assets/bank.csv');
+        if (!response.ok) throw new Error('Failed to load sample data');
+        const text = await response.text();
+        await analyzeData(text);
+        showMessage('Sample data loaded successfully!', 'success');
+      } catch (error) {
+        showMessage('Error loading sample data: ' + error.message, 'error');
+        console.error(error);
+      }
+    }
+
+    function analyzeData(csvText) {
+      try {
+        // Parse CSV
+        const lines = csvText.split('\n').filter(line => line.trim());
+        if (lines.length < 2) throw new Error('Invalid CSV format');
+
+        const headers = parseCSVLine(lines[0]);
+        const records = [];
+
+        for (let i = 1; i < lines.length; i++) {
+          try {
+            const values = parseCSVLine(lines[i]);
+            const record = {};
+            headers.forEach((h, idx) => {
+              record[h] = values[idx] || '';
+            });
+            records.push(record);
+          } catch (e) {
+            console.warn(`Skipping invalid record at line ${i + 1}`);
+          }
+        }
+
+        // Calculate metrics
+        analysisData = calculateMetrics(records);
+
+        // Update UI
+        updateDashboard();
+
+        // Hide no-data, show dashboard
+        document.getElementById('noData').style.display = 'none';
+        document.getElementById('dashboard').style.display = 'block';
+      } catch (error) {
+        throw error;
+      }
+    }
+
+    function parseCSVLine(line) {
+      const result = [];
+      let current = '';
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ';' && !inQuotes) {
+          result.push(current.trim());
+          current = '';
+        } else {
+          current += char;
+        }
+      }
+      result.push(current.trim());
+      return result;
+    }
+
+    function calculateMetrics(records) {
+      const totalContacts = records.length;
+      const totalCustomers = records.filter(r => r.y === 'yes' || r.y?.toLowerCase() === 'yes').length;
+      const totalLeads = totalContacts; // All records are leads (contacted)
+
+      const overallConversion = (totalCustomers / totalContacts) * 100;
+      const leadToCustomer = totalLeads > 0 ? (totalCustomers / totalLeads) * 100 : 0;
+      const trafficToLead = (totalLeads / totalContacts) * 100;
+
+      // Channel analysis
+      const channels = {};
+      records.forEach(r => {
+        const ch = r.contact || 'unknown';
+        if (!channels[ch]) {
+          channels[ch] = { total: 0, customers: 0 };
+        }
+        channels[ch].total++;
+        if (r.y === 'yes' || r.y?.toLowerCase() === 'yes') {
+          channels[ch].customers++;
+        }
+      });
+
+      const channelMetrics = Object.entries(channels).map(([name, data]) => ({
+        name,
+        total: data.total,
+        customers: data.customers,
+        conversion: (data.customers / data.total) * 100
+      })).sort((a, b) => b.conversion - a.conversion);
+
+      // Campaign/Month analysis
+      const months = {};
+      records.forEach(r => {
+        const m = r.month || 'unknown';
+        if (!months[m]) {
+          months[m] = { total: 0, customers: 0 };
+        }
+        months[m].total++;
+        if (r.y === 'yes' || r.y?.toLowerCase() === 'yes') {
+          months[m].customers++;
+        }
+      });
+
+      return {
+        totalContacts,
+        totalLeads,
+        totalCustomers,
+        overallConversion,
+        leadToCustomer,
+        trafficToLead,
+        dropoffAtLeads: totalContacts - totalLeads,
+        dropoffAtCustomer: totalLeads - totalCustomers,
+        totalDropoff: (totalContacts - totalCustomers),
+        channelMetrics,
+        monthMetrics: months,
+        records
+      };
+    }
+
+    function updateDashboard() {
+      if (!analysisData) return;
+
+      // Update metrics
+      const m = analysisData;
+      document.getElementById('overallConversion').textContent = m.overallConversion.toFixed(1) + '%';
+      document.getElementById('conversionDetail').textContent = `${m.totalCustomers} customers from ${m.totalContacts} contacts`;
+
+      document.getElementById('leadToCustomer').textContent = m.leadToCustomer.toFixed(1) + '%';
+      document.getElementById('leadDetail').textContent = `${m.totalCustomers}/${m.totalLeads} leads converted`;
+
+      document.getElementById('trafficToLead').textContent = m.trafficToLead.toFixed(1) + '%';
+      document.getElementById('trafficDetail').textContent = `${m.totalLeads}/${m.totalContacts} engaged`;
+
+      document.getElementById('totalDropoff').textContent = m.totalDropoff;
+      document.getElementById('dropoffDetail').textContent = `${((m.totalDropoff / m.totalContacts) * 100).toFixed(1)}% of pipeline`;
+
+      // Funnel stages
+      document.getElementById('stageContacts').textContent = m.totalContacts.toLocaleString();
+      document.getElementById('stageLeads').textContent = m.totalLeads.toLocaleString();
+      document.getElementById('leadsPercent').textContent = m.trafficToLead.toFixed(1) + '%';
+      document.getElementById('leadsBar').style.width = (m.trafficToLead) + '%';
+      document.getElementById('leadsDropoff').innerHTML = `<span>Dropoff: ${m.dropoffAtLeads} (${(m.dropoffAtLeads / m.totalContacts * 100).toFixed(1)}%)</span>`;
+
+      document.getElementById('stageCustomers').textContent = m.totalCustomers.toLocaleString();
+      document.getElementById('customersPercent').textContent = m.overallConversion.toFixed(1) + '%';
+      document.getElementById('customersBar').style.width = (m.overallConversion) + '%';
+      document.getElementById('customersDropoff').innerHTML = `<span>Dropoff: ${m.dropoffAtCustomer} (${(m.dropoffAtCustomer / m.totalLeads * 100).toFixed(1)}%)</span>`;
+
+      // Channel grid
+      const channelGrid = document.getElementById('channelGrid');
+      channelGrid.innerHTML = m.channelMetrics.map((ch, idx) => `
+        <div class="channel-card" ${idx === 0 ? 'style="border-top-color: #f39c12;"' : ''}>
+          <div class="channel-name">
+            ${ch.name}
+            ${idx === 0 ? '<span class="channel-badge">🏆 TOP</span>' : ''}
+          </div>
+          <div class="channel-stat">
+            <label>Conversion:</label>
+            <strong>${ch.conversion.toFixed(2)}%</strong>
+          </div>
+          <div class="channel-stat">
+            <label>Customers:</label>
+            <strong>${ch.customers}/${ch.total}</strong>
+          </div>
+        </div>
+      `).join('');
+
+      // Insights
+      updateInsights();
+
+      // Recommendations
+      generateRecommendations();
+
+      // Executive summary
+      generateExecutiveSummary();
+    }
+
+    function updateInsights() {
+      const m = analysisData;
+
+      // Primary bottleneck
+      if (m.leadToCustomer < 12) {
+        document.getElementById('primaryBottleneck').innerHTML = `
+          <strong>Low Sales Conversion (${m.leadToCustomer.toFixed(1)}%)</strong><br>
+          Your leads aren't converting to customers at expected rates. Focus on improving sales process and objection handling.
+        `;
+      } else if (m.trafficToLead < 95) {
+        document.getElementById('primaryBottleneck').innerHTML = `
+          <strong>Poor Lead Engagement (${m.trafficToLead.toFixed(1)}%)</strong><br>
+          Many contacts aren't engaging. Improve outreach timing, messaging, and frequency.
+        `;
+      } else {
+        document.getElementById('primaryBottleneck').innerHTML = `
+          <strong>Healthy Funnel (${m.overallConversion.toFixed(1)}%)</strong><br>
+          Your funnel is performing well. Continue optimizing for incremental improvements.
+        `;
+      }
+
+      // Top opportunity
+      const topChannel = m.channelMetrics[0];
+      const bottomChannel = m.channelMetrics[m.channelMetrics.length - 1];
+      const gap = topChannel.conversion - bottomChannel.conversion;
+      document.getElementById('topOpportunity').innerHTML = `
+        <strong>Scale ${topChannel.name.toUpperCase()} Channel</strong><br>
+        ${topChannel.name} outperforms ${bottomChannel.name} by ${gap.toFixed(1)}%. Increase budget allocation here.
+      `;
+
+      // Best performer
+      document.getElementById('bestPerformer').innerHTML = `
+        <strong>${topChannel.name.charAt(0).toUpperCase() + topChannel.name.slice(1)} is #1</strong><br>
+        ${topChannel.conversion.toFixed(1)}% conversion rate - Apply these tactics to other channels.
+      `;
+    }
+
+    function generateRecommendations() {
+      const m = analysisData;
+      const recs = {
+        critical: [],
+        opportunity: [],
+        action: []
+      };
+
+      // Critical: Low conversion
+      if (m.overallConversion < 5) {
+        recs.critical.push({
+          title: 'Urgent: Analyze Conversion Blockers',
+          description: `Your ${m.overallConversion.toFixed(1)}% conversion is critically low. Investigate what's preventing sales.`,
+          impact: '+5-10%',
+          actions: [
+            'Review sales calls and customer feedback',
+            'Identify common objections',
+            'Test new value propositions',
+            'Implement follow-up sequences'
+          ]
+        });
+      }
+
+      // Critical: Poor performing channel
+      if (m.channelMetrics.length > 1) {
+        const bottom = m.channelMetrics[m.channelMetrics.length - 1];
+        const avg = m.channelMetrics.reduce((a, b) => a + b.conversion, 0) / m.channelMetrics.length;
+        if (bottom.conversion < avg * 0.7) {
+          recs.critical.push({
+            title: `Fix Underperforming ${bottom.name} Channel`,
+            description: `${bottom.name} has ${bottom.conversion.toFixed(1)}% conversion vs ${avg.toFixed(1)}% average.`,
+            impact: `+${(avg - bottom.conversion).toFixed(1)}%`,
+            actions: [
+              `Analyze why ${bottom.name} underperforms`,
+              'Test best practices from top channels',
+              'Review agent training for this channel',
+              'Consider budget reallocation'
+            ]
+          });
+        }
+      }
+
+      // Opportunity: Scale top channel
+      if (m.channelMetrics.length > 0) {
+        const top = m.channelMetrics[0];
+        if (top.conversion > m.overallConversion * 1.2) {
+          recs.opportunity.push({
+            title: `Scale ${top.name} Channel`,
+            description: `This channel performs ${(top.conversion / m.overallConversion * 100 - 100).toFixed(0)}% better than average.`,
+            impact: `+3-5%`,
+            actions: [
+              `Increase ${top.name} contact volume by 20-30%`,
+              'Hire additional resources',
+              'Share best practices with other channels',
+              'Monitor quality while scaling'
+            ]
+          });
+        }
+      }
+
+      // Opportunity: Retargeting
+      const withPrevious = m.records.filter(r => r.poutcome === 'failure').length;
+      if (withPrevious > m.totalContacts * 0.1) {
+        recs.opportunity.push({
+          title: 'Launch Retargeting Campaign',
+          description: `${withPrevious} warm leads previously failed to convert. These are easier to win back.`,
+          impact: `+2-3%`,
+          actions: [
+            'Segment previous failures by reason',
+            'Create targeted win-back offer',
+            'Use different messaging',
+            'Implement gradual reactivation'
+          ]
+        });
+      }
+
+      // Action: Data quality
+      const veryShort = m.records.filter(r => parseInt(r.duration) < 10 && parseInt(r.duration) > 0).length;
+      if (veryShort > m.totalContacts * 0.1) {
+        recs.action.push({
+          title: 'Verify Data Quality',
+          description: `${veryShort} calls lasted less than 10 seconds. Check for logging issues.`,
+          impact: 'Quality improvement',
+          actions: [
+            'Review call logging system',
+            'Verify data capture process',
+            'Investigate dropped calls'
+          ]
+        });
+      }
+
+      // Action: Optimization
+      recs.action.push({
+        title: 'Implement A/B Testing',
+        description: 'Test different scripts, offers, and timing to find winning combinations.',
+        impact: '+1-2%',
+        actions: [
+          'Pick one variable to test',
+          'Create control and test groups',
+          'Run for 2-4 weeks',
+          'Measure and implement winner'
+        ]
+      });
+
+      // Populate tabs
+      populateRecommendationTab('critical', recs.critical);
+      populateRecommendationTab('opportunity', recs.opportunity);
+      populateRecommendationTab('action', recs.action);
+    }
+
+    function populateRecommendationTab(tabId, recommendations) {
+      const container = document.getElementById(tabId + 'Items');
+      if (recommendations.length === 0) {
+        container.innerHTML = '<p style="color: #7f8c8d; text-align: center;">No items in this category</p>';
+        return;
+      }
+
+      container.innerHTML = recommendations.map(rec => `
+        <div class="recommendation-item">
+          <div class="recommendation-title">
+            <span>${rec.title}</span>
+            <span class="impact-badge">${rec.impact}</span>
+          </div>
+          <div class="recommendation-description">${rec.description}</div>
+          <div class="action-items">
+            <strong>📋 Action Items:</strong>
+            <ul>
+              ${rec.actions.map(a => `<li>${a}</li>`).join('')}
+            </ul>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function generateExecutiveSummary() {
+      const m = analysisData;
+      const summary = `
+FUNNEL PERFORMANCE SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+OVERVIEW
+  Total Contacts:          ${m.totalContacts.toLocaleString()}
+  Total Customers:         ${m.totalCustomers.toLocaleString()}
+  Overall Conversion:      ${m.overallConversion.toFixed(2)}%
+
+CONVERSION RATES
+  Traffic → Lead:          ${m.trafficToLead.toFixed(2)}%
+  Lead → Customer:         ${m.leadToCustomer.toFixed(2)}%
+
+DROP-OFF ANALYSIS
+  Lost at Lead Stage:      ${m.dropoffAtLeads.toLocaleString()} (${(m.dropoffAtLeads / m.totalContacts * 100).toFixed(1)}%)
+  Lost at Sale Stage:      ${m.dropoffAtCustomer.toLocaleString()} (${(m.dropoffAtCustomer / m.totalLeads * 100).toFixed(1)}%)
+
+CHANNEL BREAKDOWN
+${m.channelMetrics.map(ch => 
+  `  ${ch.name.padEnd(15)} ${ch.conversion.toFixed(2)}% (${ch.customers}/${ch.total})`
+).join('\n')}
+
+KEY INSIGHTS
+  • Primary Issue:  ${m.leadToCustomer < 12 ? 'Low sales conversion' : 'Normal conversion'}
+  • Top Channel:    ${m.channelMetrics[0]?.name.toUpperCase()} (${m.channelMetrics[0]?.conversion.toFixed(1)}%)
+  • Opportunity:    Scale top performer or fix weak channels
+
+RECOMMENDATION PRIORITY
+  1. ${m.leadToCustomer < 12 ? 'Improve sales process' : 'Optimize channel mix'}
+  2. ${m.channelMetrics.length > 1 ? 'Address underperforming channels' : 'Increase volume'}
+  3. Test and optimize campaigns
+      `;
+      document.getElementById('executiveSummary').textContent = summary;
+    }
+
+    function switchTab(tabName) {
+      // Hide all
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+      document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+
+      // Show selected
+      document.getElementById(tabName).classList.add('active');
+      event.target.classList.add('active');
+    }
+
+    function showMessage(msg, type) {
+      const success = document.getElementById('successMessage');
+      const error = document.getElementById('errorMessage');
+      const loading = document.getElementById('loading');
+
+      if (type === 'success') {
+        success.textContent = '✓ ' + msg;
+        success.classList.add('show');
+        setTimeout(() => success.classList.remove('show'), 3000);
+      } else if (type === 'error') {
+        error.textContent = '✕ ' + msg;
+        error.classList.add('show');
+        setTimeout(() => error.classList.remove('show'), 5000);
+      } else if (type === 'loading') {
+        loading.style.display = 'block';
+      }
+    }
+
+    function exportJSON() {
+      if (!analysisData) return;
+      const data = JSON.stringify(analysisData, null, 2);
+      const blob = new Blob([data], { type: 'application/json' });
+      downloadFile(blob, `funnel-analysis-${Date.now()}.json`);
+    }
+
+    function exportCSV() {
+      if (!analysisData) return;
+      const m = analysisData;
+      let csv = 'Funnel Analysis Report\n';
+      csv += `Generated: ${new Date().toLocaleString()}\n\n`;
+      csv += 'Overall Metrics\n';
+      csv += `Overall Conversion,${m.overallConversion.toFixed(2)}%\n`;
+      csv += `Lead to Customer,${m.leadToCustomer.toFixed(2)}%\n`;
+      csv += `Traffic to Lead,${m.trafficToLead.toFixed(2)}%\n`;
+      csv += `Total Customers,${m.totalCustomers}\n`;
+      csv += `Total Contacts,${m.totalContacts}\n\n`;
+      csv += 'Channel Performance\n';
+      csv += 'Channel,Conversion %,Customers,Total\n';
+      m.channelMetrics.forEach(ch => {
+        csv += `${ch.name},${ch.conversion.toFixed(2)},${ch.customers},${ch.total}\n`;
+      });
+
+      const blob = new Blob([csv], { type: 'text/csv' });
+      downloadFile(blob, `funnel-analysis-${Date.now()}.csv`);
+    }
+
+    function downloadFile(blob, filename) {
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(url);
+    }
+  </script>
+</body>
+</html>
